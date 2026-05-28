@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>海龜湯題庫與投稿</title>
+    <style>
+        body { background-image: url('font/photo.jpg'); color:white; font-family:sans-serif; padding:30px; display:flex; gap:40px; }
+        .list-section { flex: 1; background:#222; padding:20px; border-radius:10px; border:1px solid #444; max-height: 80vh; overflow-y: auto;}
+        .form-section { flex: 1; background:#2b2b2b; padding:20px; border-radius:10px; border:1px solid crimson;}
+        input, textarea { width: 90%; padding:10px; margin: 10px 0; background:#333; color:white; border:1px solid #555;}
+        button { padding:10px 20px; background:crimson; color:white; border:none; cursor:pointer; font-size:16px;}
+        .story-item { background:#333; padding:10px; margin-bottom:10px; border-left:4px solid crimson; font-size:14px;}
+    </style>
+</head>
+<body>
+
+    <div class="list-section">
+        <h2 style="color:crimson;">題目列表</h2>
+        <div id="storyList">載入中...</div>
+    </div>
+
+    <div class="form-section">
+        <h2 style="color:yellow;">新增題目</h2>
+        <input type="text" id="title" placeholder="輸入題目名稱"><br>
+        <textarea id="story" rows="5" placeholder="輸入題目（開頭故事）"></textarea><br>
+        <textarea id="answer" rows="5" placeholder="輸入解答（不公開）"></textarea><br>
+        <button onclick="sendSubmission()">確認送出</button>
+        <br><br>
+        <button onclick="location.href='/'" style="background:#555;">回首頁</button>
+    </div>
+
+    <script>
+        function loadStories() {
+            fetch('/api/get_all_titles')
+            .then(res => res.json())
+            .then(data => {
+                const container = document.getElementById('storyList');
+                if(data.length === 0) {
+                    container.innerHTML = "<p>目前題庫空空如也，歡迎當第一位投稿者！</p>";
+                    return;
+                }
+                container.innerHTML = data.map(item => `
+                    <div class="story-item">
+                        <strong>${item.title}</strong><br>
+                        <span style="color:#bbb;">${item.story}</span>
+                    </div>
+                `).join('');
+            });
+        }
+
+        function sendSubmission() {
+            const title = document.getElementById('title').value.trim();
+            const story = document.getElementById('story').value.trim();
+            const answer = document.getElementById('answer').value.trim();
+
+            if(!title || !story || !answer) {
+                alert("所有欄位都要填寫完畢！");
+                return;
+            }
+
+            fetch('/api/submit', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ title, story, answer })
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                // 重新整理左邊列表，並清空輸入框
+                loadStories();
+                document.getElementById('title').value = '';
+                document.getElementById('story').value = '';
+                document.getElementById('answer').value = '';
+            });
+        }
+
+        loadStories();
+    </script>
+</body>
+</html>

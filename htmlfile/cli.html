@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <meta charset="UTF-8">
+        <title>海龜湯</title>
+        <style>
+            body {
+                background-image: url('font/background.jpg');
+                color: white;
+                font-family: sans-serif;
+                margin: 0;
+                padding: 20px;
+            }
+
+            .header {
+                text-align: center;
+                border-bottom: 2px solid crimson;
+                padding-bottom: 10px;
+                margin-bottom: 20px;
+            }
+
+            .game-container {
+                display: flex;
+                gap: 20px;
+                height: 65vh;
+            }
+
+            /* 聊天室面板 */
+            .chat-panel {
+                flex: 1.5;
+                background: #222;
+                border-radius: 8px;
+                padding: 15px;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .log {
+                flex: 1;
+                background: black;
+                border: 1px solid #444;
+                overflow-y: auto;
+                padding: 10px;
+                margin-bottom: 15px;
+                font-family: monospace;
+                font-size: 16px;
+            }
+
+            /* 關主面板 */
+            .host-panel {
+                flex: 1;
+                background: #2d1a1a;
+                border-radius: 8px;
+                padding: 15px;
+                border: 1px solid crimson;
+                display: none;
+            }
+
+            .btn-ctrl {
+                padding: 10px;
+                font-size: 16px;
+                cursor: pointer;
+                color: white;
+                border: none;
+                margin-right: 5px;
+                margin-top: 5px;
+            }
+
+            .btn-yes {
+                background: green;
+            }
+
+            .btn-no {
+                background: red;
+            }
+
+            .btn-irrelevant {
+                background: gray;
+            }
+
+            .btn-win {
+                background: gold;
+                color: black;
+                font-weight: bold;
+            }
+
+            /* 下一題/離開 覆蓋按鈕區 */
+            #endGameArea {
+                display: none;
+                margin-top: 15px;
+                text-align: center;
+                background: rgba(255, 215, 0, 0.1);
+                padding: 15px;
+                border-radius: 8px;
+                border: 1px dashed gold;
+            }
+        </style>
+    </head>
+
+    <body>
+
+        <div class="header">
+            <h1 id="roomTitle" style="color: crimson; margin:0;">房號：---- (載入中)</h1>
+            <h3 id="roleIdentity" style="color: yellow; margin:5px 0;">身份：正在判定...</h3>
+            <h4 id="playerCountArea" style="margin:5px 0; color: #aaa;">目前房間人數：<span id="pCount"
+                    style="color:cyan;">1</span> 人</h4>
+        </div>
+
+        <div class="game-container">
+            <div class="chat-panel">
+                <h3 style="margin-top:0;">對話紀錄</h3>
+                <div class="log" id="gameLog"></div>
+
+                <div id="inputArea" style="display: flex; gap:10px;">
+                    <input type="text" id="queInput" placeholder="輸入你的問題..."
+                        style="flex:1; padding:10px; font-size:16px;">
+                    <button onclick="submitQuestion()"
+                        style="padding:10px 20px; background:crimson; color:white; border:none; cursor:pointer;">發送提問</button>
+                </div>
+
+                <div id="endGameArea">
+                    <h3 style="color: gold; margin:0 0 10px 0;">本輪遊戲已揭曉真相！</h3>
+                    <button onclick="nextRound()"
+                        style="padding:10px 20px; background:darkgreen; color:white; border:none; cursor:pointer; font-size:16px; margin-right:10px;">下一題</button>
+                    <button onclick="leaveGame()"
+                        style="padding:10px 20px; background:#444; color:white; border:none; cursor:pointer; font-size:16px;">回首頁</button>
+                </div>
+            </div>
+
+            <div class="host-panel" id="hostSecretPanel">
+                <h2 style="color: #ff4c4c; margin-top:0; border-bottom:1px solid #ff4c4c;">解答</h2>
+                <div style="background:rgba(0,0,0,0.4); padding:10px; border-radius:5px; margin-bottom:15px;">
+                    <p><strong>本局湯面：</strong><span id="hostStoryText" style="color:#ffdada;">撈取中...</span></p>
+                    <p><strong>本局湯底（答案）：</strong><span id="hostAnswerText" style="color:#ffb3b3;">撈取中...</span></p>
+                </div>
+
+                <div id="hostControls">
+                    <button id="startBtn" onclick="hostStartGame()"
+                        style="width:100%; padding:15px; background:purple; font-size:18px; color:white; font-weight:bold; cursor:pointer; margin-bottom:15px;">開始遊戲</button>
+
+                    <div id="replyActionArea" style="display:none;">
+                        <p style="margin:5px 0;">快速回覆最新的玩家提問：</p>
+                        <button onclick="hostReply('是')" class="btn-ctrl btn-yes">是</button>
+                        <button onclick="hostReply('否')" class="btn-ctrl btn-no">否</button>
+                        <button onclick="hostReply('與此無關')" class="btn-ctrl btn-irrelevant">與此無關</button>
+                        <button onclick="hostReply('回答正確')" class="btn-ctrl btn-win">公布解答（完結）</button>
+
+                        <div style="margin-top:20px; border-top:1px solid #555; padding-top:10px;">
+                            <p style="margin:5px 0; color:orange;">提示：</p>
+                            <input type="text" id="hintInput" maxlength="30" placeholder="發送自訂提示 (限30字)"
+                                style="width:70%; padding:5px;">
+                            <button onclick="sendHostHint()"
+                                style="padding:5px 10px; background:orange; color:black; border:none; font-weight:bold; cursor:pointer;">發送提示</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // 解析網址參數
+            const urlParams = new URLSearchParams(window.location.search);
+            const room = urlParams.get('room');
+            const role = urlParams.get('role'); // single / host / player
+
+            // 隨機生成一個玩家ID (例如 玩家_74) 防止大家分不出來
+            const playerID = "玩家_" + Math.floor(Math.random() * 90 + 10);
+
+            document.getElementById('roomTitle').innerText = `房間號碼：${room}`;
+
+            let currentStory = "";
+            let currentAnswer = "";
+            let gameActive = true;
+            let isStarted = false;
+
+            // 1. 初始化頁面角色佈局
+            if (role === 'single') {
+                document.getElementById('roleIdentity').innerText = "單人遊戲";
+                document.getElementById('playerCountArea').style.display = 'none'; // 單人不需要人數
+                initSingleGame();
+            } else if (role === 'host') {
+                document.getElementById('roleIdentity').innerText = "身份：關主";
+                document.getElementById('hostSecretPanel').style.display = 'block';
+                document.getElementById('inputArea').style.display = 'none'; // 關主不能在左邊提問
+                initHostGame();
+                setInterval(fetchRoomStatus, 1000); // 主持人每秒監聽人數與訊息
+            } else if (role === 'player') {
+                document.getElementById('roleIdentity').innerText = `身份：玩家 (${playerID})`;
+                document.getElementById('inputArea').style.display = 'none'; // 尚未開始前，隱藏輸入框
+                // 呼叫伺服器註冊 Socket 連線
+                registerPlayer();
+                setInterval(fetchRoomStatus, 1000); // 玩家每秒監聽
+            }
+
+            // ==================== 模式 2-1: 單人遊戲邏輯 ====================
+            function initSingleGame() {
+                fetch('/api/create_room', { method: 'POST' }) // 利用建立房間 API 來撈題
+                    .then(res => res.json())
+                    .then(data => {
+                        currentStory = data.story;
+                        currentAnswer = data.answer;
+                        const log = document.getElementById('gameLog');
+                        log.innerHTML = `<div style="color:yellow; font-weight:bold; font-size:18px;">題目：${currentStory}</div><hr>`;
+                        gameActive = true;
+                        document.getElementById('inputArea').style.display = 'flex';
+                        document.getElementById('endGameArea').style.display = 'none';
+                    });
+            }
+
+            // ==================== 模式 2-2: 多人關主邏輯 ====================
+            function initHostGame() {
+                // 告訴後端我們要建立這個指定的房號
+                fetch('/api/create_specific_room', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ room_id: room })
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        currentStory = data.story;
+                        currentAnswer = data.answer;
+                        document.getElementById('hostStoryText').innerText = currentStory;
+                        document.getElementById('hostAnswerText').innerText = currentAnswer;
+                        document.getElementById('gameLog').innerHTML = `<div>房間已開啟。等待輸入玩家房號 <span style="color:yellow; font-size:20px; font-weight:bold;">${room}</span> 進入...</div>`;
+                    });
+            }
+
+            function hostStartGame() {
+                fetch('/api/start_game', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ room_id: room })
+                })
+                    .then(() => {
+                        document.getElementById('startBtn').style.display = 'none';
+                        document.getElementById('replyActionArea').style.display = 'block';
+                        isStarted = true;
+                    });
+            }
+
+            function hostReply(type) {
+                fetch('/api/reply', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ room_id: room, reply: type })
+                });
+                if (type === '回答正確') {
+                    document.getElementById('replyActionArea').style.display = 'none';
+                    document.getElementById('endGameArea').style.display = 'block';
+                }
+            }
+
+            function sendHostHint() {
+                const hint = document.getElementById('hintInput').value.trim();
+                if (!hint) return;
+                fetch('/api/send_hint', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ room_id: room, hint: hint })
+                });
+                document.getElementById('hintInput').value = '';
+            }
+
+            // ==================== 多人玩家聯機登記 ====================
+            function registerPlayer() {
+                console.log(`[前端連線調試] 正在註冊連房，房號: ${room}, ID: ${playerID}`);
+
+                // 直接使用相對路徑 '/'，自動抓取目前網域 Port 5678
+                fetch('/api/connect_room', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ room_id: room, player_id: playerID })
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status !== "success") {
+                            alert("連線失敗！房間不存在。");
+                            location.href = "/";
+                        }
+                    })
+                    .catch(err => console.error("[前端連線調試] 註冊發生錯誤:", err));
+            }
+
+            // ==================== 共通：發送問題與動態更新 ====================
+            // ==================== 發送問題 ====================
+            function submitQuestion() {
+                const input = document.getElementById('queInput');
+                const msg = input.value.trim();
+                if (!msg || !gameActive) return;
+
+                const log = document.getElementById('gameLog');
+
+                if (role === 'single') {
+                    log.innerHTML += `<div style="color:cyan;">[你] 提問：${msg}</div>`;
+
+                    fetch('/api/ai_chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ msg: msg, answer: currentAnswer })
+                    })
+                        .then(res => {
+                            if (res.status === 412) {
+                                res.json().then(data => {
+                                    alert(data.message);
+                                    location.href = "/";
+                                });
+                                throw new Error("AI 未啟用");
+                            }
+                            return res.json();
+                        })
+                        .then(data => {
+                            log.innerHTML += `<div style="color:#ff4c4c;">關主：${data.reply}</div>`;
+                            log.scrollTop = log.scrollHeight;
+
+                            if (data.reply.includes("回答正確")) {
+                                gameActive = false;
+                                document.getElementById('inputArea').style.display = 'none';
+                                document.getElementById('endGameArea').style.display = 'block';
+                            }
+                        });
+                } else {
+                    // 多人模式：直接往目前的 5678 伺服器發送 POST 請求
+                    fetch('/api/send_msg', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ room_id: room, msg: `[${playerID}] 提問：${msg}` })
+                    })
+                        .catch(err => console.error("[前端提問調試] 發送失敗:", err));
+                }
+                input.value = '';
+            }
+
+            function fetchRoomStatus() {
+                if (role === 'single') return;
+
+                fetch(`/api/get_messages?room_id=${room}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        // 如果關主不在了或解散了，強制跳出
+                        if (data.status === "closed") {
+                            alert("關主已離開或房間已被解散！");
+                            location.href = "/";
+                            return;
+                        }
+
+                        document.getElementById('pCount').innerText = data.player_count;
+
+                        // 玩家動態顯示輸入框：當狀態變為 playing 時才允許提問
+                        if (role === 'player') {
+                            if (data.status === 'playing') {
+                                document.getElementById('inputArea').style.display = 'flex';
+                            }
+                            if (data.messages.some(m => m.includes("真正的故事"))) {
+                                document.getElementById('inputArea').style.display = 'none';
+                                document.getElementById('endGameArea').style.display = 'block';
+                            }
+                        }
+
+                        const log = document.getElementById('gameLog');
+                        log.innerHTML = data.messages.map(msg => `<div>${msg}</div>`).join('');
+                        log.scrollTop = log.scrollHeight;
+                    });
+            }
+
+            // ==================== 下一題與離開機制 ====================
+            function nextRound() {
+                if (role === 'single') {
+                    initSingleGame();
+                } else {
+                    // 多人模式下由關主按下一題，房間重置回 waiting 狀態並換一題
+                    fetch('/api/next_round', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ room_id: room })
+                    }).then(() => {
+                        location.reload(); // 重新整理網頁回到等待畫面
+                    });
+                }
+            }
+
+            function leaveGame() {
+                if (role === 'host') {
+                    // 如果是關主主動離開，發送通知銷毀房間
+                    fetch('/api/close_room', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ room_id: room })
+                    }).then(() => { location.href = "/"; });
+                } else {
+                    location.href = "/";
+                }
+            }
+
+            // 防呆機制：當使用者試圖重新整理、按上一頁、或是直接關閉分頁(按X)時觸發
+            window.onbeforeunload = function (e) {
+                if (role === 'host') {
+                    // 使用 sendBeacon 技術：這是專門為了「網頁關閉瞬間」發送請求而設計的
+                    // 即使網頁關掉了，瀏覽器也會在背景保證把這個銷毀房間的請求發給後端！
+                    const url = `/api/close_room`;
+                    const data = JSON.stringify({ room_id: room });
+
+                    // 由於 sendBeacon 只能發送特定格式，我們用 Blob 包裹 JSON
+                    const blob = new Blob([data], { type: 'application/json' });
+                    navigator.sendBeacon(url, blob);
+                }
+            };
+        </script>
+    </body>
+
+</html>
