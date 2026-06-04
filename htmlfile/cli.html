@@ -166,9 +166,8 @@
             const room = urlParams.get('room');
             const role = urlParams.get('role'); // single / host / player
 
-            // 檢查是否已登入，若已登入使用用戶名，否則生成隨機ID
-            const loggedInUsername = localStorage.getItem('username');
-            const playerID = loggedInUsername || ("玩家_" + Math.floor(Math.random() * 90 + 10));
+            // 隨機生成一個玩家ID (例如 玩家_74) 防止大家分不出來
+            const playerID = "玩家_" + Math.floor(Math.random() * 90 + 10);
 
             document.getElementById('roomTitle').innerText = `房間號碼：${room}`;
 
@@ -268,19 +267,12 @@
             // ==================== 多人玩家聯機登記 ====================
             function registerPlayer() {
                 console.log(`[前端連線調試] 正在註冊連房，房號: ${room}, ID: ${playerID}`);
-                
-                // 取得 localStorage 中的 user_id（如果已登入）
-                const userId = localStorage.getItem('user_id');
 
                 // 直接使用相對路徑 '/'，自動抓取目前網域 Port 5678
                 fetch('/api/connect_room', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        room_id: room, 
-                        player_id: playerID,
-                        user_id: userId  // 傳送 user_id
-                    })
+                    body: JSON.stringify({ room_id: room, player_id: playerID })
                 })
                     .then(res => res.json())
                     .then(data => {
@@ -294,6 +286,17 @@
 
             // ==================== 共通：發送問題與動態更新 ====================
             // ==================== 發送問題 ====================
+            function recordWin() {
+                const userId = localStorage.getItem('user_id');
+                if (!userId) return;
+
+                fetch('/api/record_win', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId })
+                }).catch(err => console.error("[排行榜] 勝場紀錄失敗:", err));
+            }
+
             function submitQuestion() {
                 const input = document.getElementById('queInput');
                 const msg = input.value.trim();
@@ -325,6 +328,7 @@
 
                             if (data.reply.includes("回答正確")) {
                                 gameActive = false;
+                                recordWin();
                                 document.getElementById('inputArea').style.display = 'none';
                                 document.getElementById('endGameArea').style.display = 'block';
                             }

@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>排行榜 | 海龜湯</title>
+    <style>
+        @font-face {
+            font-family: 'NaikaiFont';
+            src: url('/font/NaikaiFont-Bold.ttf') format('truetype');
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            padding: 24px;
+            color: white;
+            font-family: 'NaikaiFont', Geneva, Tahoma, sans-serif;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.7)), url('/font/bg.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        .page {
+            width: min(1080px, 100%);
+            margin: 0 auto;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding-bottom: 14px;
+            border-bottom: 2px solid crimson;
+        }
+
+        h1 {
+            margin: 0;
+            color: crimson;
+            font-size: clamp(40px, 8vw, 76px);
+            line-height: 1;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+        }
+
+        .home-link {
+            flex: 0 0 auto;
+            padding: 10px 18px;
+            color: white;
+            text-decoration: none;
+            background: rgba(182, 34, 34, 0.78);
+            border: 4px dotted rgb(65, 20, 20);
+            border-radius: 8px;
+            font-size: 18px;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin: 24px 0;
+        }
+
+        .summary-item,
+        .board {
+            background: rgba(14, 14, 14, 0.86);
+            border: 1px solid rgba(220, 20, 60, 0.65);
+            border-radius: 8px;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+        }
+
+        .summary-item {
+            padding: 18px;
+        }
+
+        .summary-label {
+            color: #c9c9c9;
+            font-size: 15px;
+        }
+
+        .summary-value {
+            margin-top: 6px;
+            color: gold;
+            font-size: 30px;
+        }
+
+        .board {
+            overflow: hidden;
+        }
+
+        .board-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 18px 20px;
+            background: rgba(45, 26, 26, 0.95);
+            border-bottom: 1px solid rgba(220, 20, 60, 0.55);
+        }
+
+        .board-title h2 {
+            margin: 0;
+            font-size: 24px;
+            color: #ffdddd;
+        }
+
+        .refresh-btn {
+            padding: 8px 14px;
+            color: white;
+            font: inherit;
+            cursor: pointer;
+            background: crimson;
+            border: 0;
+            border-radius: 6px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 16px 20px;
+            text-align: left;
+            border-bottom: 1px solid #333;
+        }
+
+        th {
+            color: #ffb3b3;
+            font-size: 15px;
+            background: rgba(0, 0, 0, 0.36);
+        }
+
+        td {
+            font-size: 18px;
+        }
+
+        tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .rank {
+            width: 92px;
+            color: gold;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .player {
+            color: white;
+            font-size: 20px;
+        }
+
+        .score {
+            color: cyan;
+            font-weight: bold;
+        }
+
+        .muted {
+            color: #aaa;
+        }
+
+        .state {
+            padding: 42px 20px;
+            text-align: center;
+            color: #ddd;
+            font-size: 20px;
+        }
+
+        .mobile-list {
+            display: none;
+        }
+
+        @media (max-width: 720px) {
+            body {
+                padding: 16px;
+                background-attachment: scroll;
+            }
+
+            .topbar {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .home-link {
+                width: 100%;
+                text-align: center;
+            }
+
+            .summary {
+                grid-template-columns: 1fr;
+                gap: 10px;
+                margin: 18px 0;
+            }
+
+            .summary-item {
+                padding: 14px;
+            }
+
+            .board-title {
+                align-items: stretch;
+                flex-direction: column;
+                padding: 16px;
+            }
+
+            .refresh-btn {
+                width: 100%;
+            }
+
+            table {
+                display: none;
+            }
+
+            .mobile-list {
+                display: grid;
+                gap: 10px;
+                padding: 12px;
+            }
+
+            .player-card {
+                padding: 14px;
+                background: rgba(0, 0, 0, 0.45);
+                border: 1px solid #333;
+                border-radius: 8px;
+            }
+
+            .card-main {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+                margin-bottom: 12px;
+            }
+
+            .card-main .player {
+                min-width: 0;
+                overflow-wrap: anywhere;
+            }
+
+            .card-stats {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+                color: #ddd;
+                font-size: 15px;
+            }
+
+            .card-stats strong {
+                display: block;
+                margin-bottom: 4px;
+                color: #ffb3b3;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="page">
+        <header class="topbar">
+            <h1>排行榜</h1>
+            <a class="home-link" href="/">回首頁</a>
+        </header>
+
+        <section class="summary" aria-label="排行榜統計">
+            <div class="summary-item">
+                <div class="summary-label">上榜玩家</div>
+                <div class="summary-value" id="totalPlayers">0</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">最高分</div>
+                <div class="summary-value" id="topScore">0</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">總勝場</div>
+                <div class="summary-value" id="totalWins">0</div>
+            </div>
+        </section>
+
+        <section class="board">
+            <div class="board-title">
+                <h2>玩家排名</h2>
+                <button class="refresh-btn" type="button" onclick="loadLeaderboard()">重新整理</button>
+            </div>
+            <div id="state" class="state">讀取排行榜中...</div>
+            <table id="leaderboardTable" hidden>
+                <thead>
+                    <tr>
+                        <th>名次</th>
+                        <th>玩家</th>
+                        <th>分數</th>
+                        <th>勝場</th>
+                        <th>投稿</th>
+                        <th>最近勝利</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboardBody"></tbody>
+            </table>
+            <div class="mobile-list" id="mobileList"></div>
+        </section>
+    </main>
+
+    <script>
+        const stateEl = document.getElementById('state');
+        const tableEl = document.getElementById('leaderboardTable');
+        const tbodyEl = document.getElementById('leaderboardBody');
+        const mobileListEl = document.getElementById('mobileList');
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            }[char]));
+        }
+
+        function updateSummary(players) {
+            document.getElementById('totalPlayers').textContent = players.length;
+            document.getElementById('topScore').textContent = players[0]?.score ?? 0;
+            document.getElementById('totalWins').textContent = players.reduce((sum, player) => sum + Number(player.wins || 0), 0);
+        }
+
+        function renderLeaderboard(players) {
+            updateSummary(players);
+            tbodyEl.innerHTML = '';
+            mobileListEl.innerHTML = '';
+
+            if (!players.length) {
+                tableEl.hidden = true;
+                stateEl.hidden = false;
+                stateEl.textContent = '目前還沒有排行榜資料';
+                return;
+            }
+
+            stateEl.hidden = true;
+            tableEl.hidden = false;
+
+            tbodyEl.innerHTML = players.map(player => `
+                <tr>
+                    <td class="rank">#${player.rank}</td>
+                    <td class="player">${escapeHtml(player.username)}</td>
+                    <td class="score">${player.score}</td>
+                    <td>${player.wins}</td>
+                    <td>${player.submissions}</td>
+                    <td class="muted">${player.last_win_at || '尚未勝利'}</td>
+                </tr>
+            `).join('');
+
+            mobileListEl.innerHTML = players.map(player => `
+                <article class="player-card">
+                    <div class="card-main">
+                        <div class="rank">#${player.rank}</div>
+                        <div class="player">${escapeHtml(player.username)}</div>
+                        <div class="score">${player.score}</div>
+                    </div>
+                    <div class="card-stats">
+                        <div><strong>勝場</strong>${player.wins}</div>
+                        <div><strong>投稿</strong>${player.submissions}</div>
+                        <div><strong>最近</strong>${player.last_win_at || '尚未勝利'}</div>
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        function loadLeaderboard() {
+            tableEl.hidden = true;
+            stateEl.hidden = false;
+            stateEl.textContent = '讀取排行榜中...';
+
+            fetch('/api/leaderboard')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status !== 'success') {
+                        throw new Error(data.message || '排行榜讀取失敗');
+                    }
+                    renderLeaderboard(data.players || []);
+                })
+                .catch(error => {
+                    updateSummary([]);
+                    tableEl.hidden = true;
+                    stateEl.hidden = false;
+                    stateEl.textContent = error.message;
+                });
+        }
+
+        loadLeaderboard();
+    </script>
+</body>
+
+</html>
