@@ -10,16 +10,21 @@ from flask import Flask, render_template, request, jsonify, session
 from flask_cors import CORS
 from google import genai
 from google.genai import types
-from duckduckgo_search import DDGS
 
 app = Flask(__name__, template_folder="htmlfile", static_folder="font")
 CORS(app)
 
+# Tailscale 配置
+TAILSCALE_IP = "100.91.37.64"  # 你的 Tailscale IP
 HOST = "0.0.0.0"
 PORT = 65432  # 後台 Socket
+FLASK_PORT = 5432  # Flask 端口
+
+print(f"[Tailscale] 你的虛擬 IP: {TAILSCALE_IP}")
+print(f"[連線] 朋友可以使用以下網址進入: http://{TAILSCALE_IP}:{FLASK_PORT}")
 
 # 房間狀態
-# 結構：{ "房號": { "messages": [], "story": "", "ans": "", "status": "waiting", "player_count": 0 } }
+# 結構：{ "房號": { "messages": [], "story": "", "ans": "", "status": "waiting", "player_count": 0, "players": {} } }
 rooms = {}
 
 
@@ -261,6 +266,7 @@ def create_specific_room():
         "ans": answer,
         "status": "waiting",
         "player_count": 0,
+        "players": {}  # 記錄玩家：{"玩家名": "user_id"}
     }
     print(f"[系統日誌] 關主成功開拓多人房間: {room_id}")
     return jsonify({"story": story, "answer": answer})
@@ -272,12 +278,14 @@ def connect_room():
     data = request.get_json()
     room_id = data.get("room_id")
     player_id = data.get("player_id", "玩家")
+    user_id = data.get("user_id")  # 取得登入的 user_id（如果有的話）
 
     if room_id in rooms:
         rooms[room_id]["player_count"] += 1
+        rooms[room_id]["players"][player_id] = user_id  # 記錄玩家名和用戶ID
         rooms[room_id]["messages"].append(f"【{player_id}】進入了房間。")
         print(
-            f"[系統日誌] 房間 {room_id} 新增一位玩家，目前在線: {rooms[room_id]['player_count']} 人"
+            f"[系統日誌] 房間 {room_id} 新增一位玩家：{player_id}(user_id:{user_id})，目前在線: {rooms[room_id]['player_count']} 人"
         )
         return jsonify({"status": "success"})
     return jsonify({"status": "failed", "message": "房間號碼不存在！"}), 404
@@ -492,4 +500,11 @@ def ai_chat():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5678, debug=False, threaded=True)
+    print("\n" + "="*60)
+    print("🐢 海龜湯遊戲伺服器啟動")
+    print("="*60)
+    print(f"✅ Flask 主伺服器: http://localhost:{FLASK_PORT}")
+    print(f"✅ Tailscale IP: http://{TAILSCALE_IP}:{FLASK_PORT}")
+    print(f"✅ Socket 伺服器: {HOST}:{PORT}")
+    print("="*60 + "\n")
+    app.run(host="0.0.0.0", port=FLASK_PORT, debug=False, threaded=True)
