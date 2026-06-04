@@ -160,6 +160,8 @@
 
         <script>
             // 解析網址參數
+            let isNormalNavigation = false;
+
             const urlParams = new URLSearchParams(window.location.search);
             const room = urlParams.get('room');
             const role = urlParams.get('role'); // single / host / player
@@ -374,6 +376,7 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ room_id: room })
                     }).then(() => {
+                        isNormalNavigation = true;
                         location.reload(); // 重新整理網頁回到等待畫面
                     });
                 }
@@ -394,13 +397,9 @@
 
             // 防呆機制：當使用者試圖重新整理、按上一頁、或是直接關閉分頁(按X)時觸發
             window.onbeforeunload = function (e) {
-                if (role === 'host') {
-                    // 使用 sendBeacon 技術：這是專門為了「網頁關閉瞬間」發送請求而設計的
-                    // 即使網頁關掉了，瀏覽器也會在背景保證把這個銷毀房間的請求發給後端！
+                if (role === 'host' && !isNormalNavigation) {
                     const url = `/api/close_room`;
                     const data = JSON.stringify({ room_id: room });
-
-                    // 由於 sendBeacon 只能發送特定格式，我們用 Blob 包裹 JSON
                     const blob = new Blob([data], { type: 'application/json' });
                     navigator.sendBeacon(url, blob);
                 }
