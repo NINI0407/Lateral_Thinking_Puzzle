@@ -20,6 +20,61 @@
             background-attachment: fixed;
         }
 
+        .auth-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px 20px;
+            border-radius: 8px;
+            border: 2px solid crimson;
+        }
+
+        .auth-panel a,
+        .auth-panel button {
+            margin: 0 10px;
+            padding: 8px 15px;
+            font-size: 14px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-family: 'NaikaiFont', Geneva, Tahoma, sans-serif;
+            font-weight: bold;
+        }
+
+        .auth-panel .login-btn {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .auth-panel .login-btn:hover {
+            background: #45a049;
+        }
+
+        .auth-panel .register-btn {
+            background: #2196F3;
+            color: white;
+        }
+
+        .auth-panel .register-btn:hover {
+            background: #0b7dda;
+        }
+
+        .auth-panel .logout-btn {
+            background: #f44336;
+            color: white;
+        }
+
+        .auth-panel .logout-btn:hover {
+            background: #da190b;
+        }
+
+        .user-name {
+            color: yellow;
+            font-size: 16px;
+        }
+
         button.button {
             padding: 10px 20px;
             font-size: 20px;
@@ -37,6 +92,18 @@
 </head>
 
 <body>
+    <!-- 認證面板 -->
+    <div class="auth-panel">
+        <span id="authContent">
+            <a href="/login_page" class="login-btn">登入</a>
+            <a href="/register_page" class="register-btn">註冊</a>
+        </span>
+        <div id="userContent" style="display: none;">
+            <span class="user-name" id="displayUsername"></span>
+            <button class="logout-btn" onclick="logout()">登出</button>
+        </div>
+    </div>
+
     <h1 style="color: crimson; font-size: 80px;">海龜湯</h1>
     <div class="btn-group">
         <button onclick="goSingle()" class="button">單人遊戲</button><br>
@@ -50,6 +117,35 @@
 
     <script>
         const host = window.location.host; // 動態抓取目前網頁的 IP:Port
+
+        // 檢查登入狀態
+        function checkLoginStatus() {
+            const username = localStorage.getItem('username');
+            const userId = localStorage.getItem('user_id');
+            
+            const authContent = document.getElementById('authContent');
+            const userContent = document.getElementById('userContent');
+            
+            if (username && userId) {
+                // 已登入
+                authContent.style.display = 'none';
+                userContent.style.display = 'block';
+                document.getElementById('displayUsername').textContent = `歡迎，${username}！`;
+            } else {
+                // 未登入
+                authContent.style.display = 'block';
+                userContent.style.display = 'none';
+            }
+        }
+
+        function logout() {
+            if (confirm('確定要登出嗎？')) {
+                localStorage.removeItem('user_id');
+                localStorage.removeItem('username');
+                alert('已登出');
+                location.reload();
+            }
+        }
 
         function goSingle() {
             const randRoom = Math.floor(Math.random() * 900) + 100; // 生成 100~999
@@ -69,6 +165,9 @@
             }
             location.href = `http://${host}/cli_page?room=${roomVal}&role=player`;
         }
+
+        // 頁面載入時檢查登入狀態
+        window.addEventListener('load', checkLoginStatus);
     </script>
 </body>
 

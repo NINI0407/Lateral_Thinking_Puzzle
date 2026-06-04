@@ -10,6 +10,24 @@
         input, textarea { width: 90%; padding:10px; margin: 10px 0; background:#333; color:white; border:1px solid #555;}
         button { padding:10px 20px; background:crimson; color:white; border:none; cursor:pointer; font-size:16px;}
         .story-item { background:#333; padding:10px; margin-bottom:10px; border-left:4px solid crimson; font-size:14px;}
+        
+        .auth-check {
+            background: #222;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 2px solid yellow;
+        }
+        
+        .login-prompt {
+            color: yellow;
+            margin: 10px 0;
+        }
+        
+        .logged-in-info {
+            color: #0f0;
+            margin: 10px 0;
+        }
     </style>
 </head>
 <body>
@@ -20,16 +38,60 @@
     </div>
 
     <div class="form-section">
+        <div class="auth-check">
+            <div id="notLoggedIn" style="display:none;">
+                <p class="login-prompt">⚠️ 你需要登入才能投稿</p>
+                <button onclick="location.href='/login_page'" style="width: 100%;">前往登入</button>
+            </div>
+            <div id="loggedIn" style="display:none;">
+                <p class="logged-in-info">✓ 已登入為：<strong id="displayUsername"></strong></p>
+                <button onclick="logout()" style="width: 100%; background:#f44336;">登出</button>
+            </div>
+        </div>
+
         <h2 style="color:yellow;">新增題目</h2>
         <input type="text" id="title" placeholder="輸入題目名稱"><br>
         <textarea id="story" rows="5" placeholder="輸入題目（開頭故事）"></textarea><br>
         <textarea id="answer" rows="5" placeholder="輸入解答（不公開）"></textarea><br>
-        <button onclick="sendSubmission()">確認送出</button>
+        <button onclick="sendSubmission()" id="submitBtn">確認送出</button>
         <br><br>
         <button onclick="location.href='/'" style="background:#555;">回首頁</button>
     </div>
 
     <script>
+        function checkLoginStatus() {
+            const username = localStorage.getItem('username');
+            const userId = localStorage.getItem('user_id');
+            
+            const notLoggedIn = document.getElementById('notLoggedIn');
+            const loggedIn = document.getElementById('loggedIn');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            if (username && userId) {
+                // 已登入
+                notLoggedIn.style.display = 'none';
+                loggedIn.style.display = 'block';
+                document.getElementById('displayUsername').textContent = username;
+                submitBtn.disabled = false;
+                submitBtn.style.opacity = '1';
+            } else {
+                // 未登入
+                notLoggedIn.style.display = 'block';
+                loggedIn.style.display = 'none';
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.5';
+            }
+        }
+
+        function logout() {
+            if (confirm('確定要登出嗎？')) {
+                localStorage.removeItem('user_id');
+                localStorage.removeItem('username');
+                alert('已登出');
+                location.reload();
+            }
+        }
+
         function loadStories() {
             fetch('/api/get_all_titles')
             .then(res => res.json())
@@ -49,6 +111,15 @@
         }
 
         function sendSubmission() {
+            const username = localStorage.getItem('username');
+            const userId = localStorage.getItem('user_id');
+            
+            if (!username || !userId) {
+                alert("請先登入！");
+                location.href = '/login_page';
+                return;
+            }
+
             const title = document.getElementById('title').value.trim();
             const story = document.getElementById('story').value.trim();
             const answer = document.getElementById('answer').value.trim();
@@ -61,7 +132,7 @@
             fetch('/api/submit', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ title, story, answer })
+                body: JSON.stringify({ title, story, answer, user_id: userId })
             })
             .then(res => res.json())
             .then(data => {
@@ -74,7 +145,11 @@
             });
         }
 
-        loadStories();
+        // 初始化
+        window.addEventListener('load', function() {
+            checkLoginStatus();
+            loadStories();
+        });
     </script>
 </body>
 </html>

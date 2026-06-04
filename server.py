@@ -5,7 +5,8 @@ import random
 import pymysql
 import json
 import time
-from flask import Flask, render_template, request, jsonify
+import hashlib
+from flask import Flask, render_template, request, jsonify, session
 from flask_cors import CORS
 from google import genai
 from google.genai import types
@@ -74,6 +75,16 @@ def get_random_story():
     return "暫無題目", "暫無答案"
 
 
+# ==================== 密碼加密 ====================
+def hash_password(password):
+    """使用SHA256加密密碼"""
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def verify_password(password, hashed_password):
+    """驗證密碼"""
+    return hash_password(password) == hashed_password
+
+
 # ==================== 網頁 ====================
 @app.route("/")
 def home():
@@ -90,7 +101,101 @@ def submit_page():
     return render_template("submit.html")
 
 
+@app.route("/login_page")
+def login_page():
+    return render_template("login.html")
+
+
+@app.route("/register_page")
+def register_page():
+    return render_template("register.html")
+
+
 # ==================== 功能 ====================
+
+
+# === 認證 ===
+
+
+# 【用户註冊】
+@app.route("/api/register", methods=["POST"])
+def register():
+    data = request.get_json()
+    username = data.get("username", "").strip()
+    email = data.get("email", "").strip()
+    password = data.get("password", "")
+
+    # 驗證輸入
+    if not username or not email or not password:
+        return jsonify({"status": "failed", "message": "所有欄位都是必填的！"}), 400
+
+    if len(username) < 3 or len(username) > 20:
+        return jsonify({"status": "failed", "message": "帳號必須是3-20個字符"}), 400
+
+    if len(password) < 6:
+        return jsonify({"status": "failed", "message": "密碼至少需要6個字符"}), 400
+
+    try:
+        conn = get_db_connection()
+        with conn.cursor() as cursor:
+            # 檢查帳號是否已存在
+            cursor.execute("SELECT id FROM users WHERE username = %s", (username,))
+            if cursor.fetchone():
+                return jsonify({"status": "failed", "message": "帳號已存在！"}), 400
+
+            # 檢查郵箱是否已註冊
+            cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
+            if cursor.fetchone():
+                return jsonify({"status": "failed", "message": "郵箱已被註冊！"}), 400
+
+            # 插入新用户
+            hashed_password = hash_password(password)
+            sql = "INSERT INTO users (username, email, password) VALUES (%s, %s, %s)"
+            cursor.execute(sql, (username, email, hashed_password))
+            conn.commit()
+        conn.close()
+
+        return jsonify({"status": "success", "message": "註冊成功！請登入。"})
+
+    except Exception as e:
+        print(f"[註冊異常] {e}")
+        return jsonify({"status": "failed", "message": f"註冊失敗: {e}"}), 500
+
+
+# 【用户登入】
+@app.route("/api/login", methods=["POST"])
+def login():
+    data = request.get_json()
+    username = data.get("username", "").strip()
+    password = data.get("password", "")
+
+    if not username or not password:
+        return jsonify({"status": "failed", "message": "帳號和密碼不能為空！"}), 400
+
+    try:
+        conn = get_db_connection()
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT id, username, password FROM users WHERE username = %s", (username,))
+            user = cursor.fetchone()
+        conn.close()
+
+        if not user:
+            return jsonify({"status": "failed", "message": "帳號不存在！"}), 401
+
+        if not verify_password(password, user["password"]):
+            return jsonify({"status": "failed", "message": "密碼錯誤！"}), 401
+
+        # 登入成功，返回用户信息
+        return jsonify({
+            "status": "success",
+            "message": "登入成功！",
+            "user_id": user["id"],
+            "username": user["username"]
+        })
+
+    except Exception as e:
+        print(f"[登入異常] {e}")
+        return jsonify({"status": "failed", "message": f"登入失敗: {e}"}), 500
 
 
 # === 題目投稿 ===
@@ -115,11 +220,15 @@ def get_all_titles():
 def submit_story():
     data = request.get_json()
     title, story, answer = data.get("title"), data.get("story"), data.get("answer")
+    user_id = data.get("user_id")  # 取得用户ID
+    
     try:
         conn = get_db_connection()
         with conn.cursor() as cursor:
-            sql = "INSERT INTO submissions (title, story, answer) VALUES (%s, %s, %s)"
-            cursor.execute(sql, (title, story, answer))
+            # 投稿記錄表，包含user_id
+            sql = "INSERT INTO submissions (title, story, answer, user_id) VALUES (%s, %s, %s, %s)"
+            cursor.execute(sql, (title, story, answer, user_id))
+            # 題庫表
             sql2 = "INSERT INTO game_stories (title, story, answer) VALUES (%s, %s, %s)"
             cursor.execute(sql2, (title, story, answer))
         conn.commit()
