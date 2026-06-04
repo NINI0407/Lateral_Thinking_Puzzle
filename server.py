@@ -10,6 +10,7 @@ from flask import Flask, render_template, request, jsonify, session
 from flask_cors import CORS
 from google import genai
 from google.genai import types
+from duckduckgo_search import DDGS
 
 app = Flask(__name__, template_folder="htmlfile", static_folder="font")
 CORS(app)
@@ -26,10 +27,10 @@ rooms = {}
 
 GEMINI_API_KEY = None
 
-if os.path.exists("key.txt"):
-    with open("key.txt", "r", encoding="utf-8") as f:
+if os.path.exists("config.txt"):
+    with open("config.txt", "r", encoding="utf-8") as f:
         for line in f:
-            if line.startswith("API_KEY="):
+            if line.startswith("GEMINI_API_KEY="):
                 GEMINI_API_KEY = line.split("=")[1].strip()
 
 client = None
@@ -403,13 +404,12 @@ def ai_chat():
     player_msg = data.get("msg", "")  # 玩家問的問題
     answer_context = data.get("answer", "")  # 從資料庫撈出來的真相答案
 
-    # 防呆：如果沒填 API Key 或初始化失敗，啟動原本的弱智型 if/else 備援方案
     if not client:
         return (
             jsonify(
                 {
                     "status": "error",
-                    "message": "本機未偵測到 AI 關主憑證（config.txt），單人模式暫不可用。請先加入其他玩家的多人房間吧！",
+                    "message": "本機未偵測到憑證，單人模式暫不可用。請先加入其他玩家的多人房間吧！",
                 }
             ),
             412,
@@ -453,6 +453,42 @@ def ai_chat():
     except Exception as e:
         print(f"[AI連線異常] 呼叫 Gemini 發生錯誤: {e}")
         return jsonify({"reply": "AI 關主開小差了，請再試一次！"})
+
+# @app.route('/api/ai_chat', methods=['POST'])
+# def ai_chat():
+#     data = request.get_json()
+#     player_msg = data.get("msg", "")       
+#     answer_context = data.get("answer", "") 
+
+#     # 🤖 建立給開源 LLM 的提示詞
+#     system_instruction = f"""
+#     你現在是一位嚴格、精準的「海龜湯遊戲關主」。
+#     【本局真相（湯底）】：{answer_context}。
+#     玩家會對你提出一個是非題。
+#     你只能根據真相進行推理，並嚴格從以下「四個固定選項」中選擇一個回答，絕對不能多說任何一個廢字或做任何劇情解釋：
+#     1. 若玩家猜對核心或要求公布解答，回答：『回答正確』；
+#     2. 若問題成立，回答：『是』；
+#     3. 若問題不成立，回答：『否』；
+#     4. 若無關緊要，回答：『與此無關』。
+#     除了這四個標準回覆，不要說任何多餘的話。
+#     """
+
+#     try:
+#         with DDGS() as ddgs:
+#             full_prompt = f"{system_instruction}\n\n玩家現在提問：{player_msg}\n請只回覆那四個選項之一："
+#             response = ddgs.ai_chat(keywords=full_prompt, model='llama-3-70b')
+            
+#         ai_reply = response.strip()
+#         print(f"[AI關主思維] 玩家問: {player_msg} -> AI判定: {ai_reply}")
+
+#         if "回答正確" in ai_reply:
+#             ai_reply = f"回答正確！揭曉真相：{answer_context}"
+
+#         return jsonify({"reply": ai_reply})
+
+#     except Exception as e:
+#         print(f"[開源AI連線異常] 發生錯誤: {e}")
+#         return jsonify({"reply": "關主腦袋卡住了，請再問一次！"})
 
 
 if __name__ == "__main__":
