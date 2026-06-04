@@ -280,8 +280,8 @@
                 <div class="summary-value" id="topScore">0</div>
             </div>
             <div class="summary-item">
-                <div class="summary-label">總勝場</div>
-                <div class="summary-value" id="totalWins">0</div>
+                <div class="summary-label">總投稿數</div>
+                <div class="summary-value" id="totalSubmissions">0</div>
             </div>
         </section>
 
@@ -327,7 +327,7 @@
         function updateSummary(players) {
             document.getElementById('totalPlayers').textContent = players.length;
             document.getElementById('topScore').textContent = players[0]?.score ?? 0;
-            document.getElementById('totalWins').textContent = players.reduce((sum, player) => sum + Number(player.wins || 0), 0);
+            document.getElementById('totalSubmissions').textContent = players.reduce((sum, player) => sum + Number(player.submissions || 0), 0);
         }
 
         function renderLeaderboard(players) {

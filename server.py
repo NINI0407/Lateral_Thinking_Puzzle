@@ -229,7 +229,7 @@ def login():
 @app.route("/api/leaderboard", methods=["GET"])
 def leaderboard():
     try:
-        ensure_player_stats_table()
+        # ensure_player_stats_table()
         conn = get_db_connection()
         with conn.cursor() as cursor:
             cursor.execute(
@@ -273,7 +273,7 @@ def record_win():
         return jsonify({"status": "ignored", "message": "未登入，不紀錄排行榜"})
 
     try:
-        ensure_player_stats_table()
+        # ensure_player_stats_table()
         conn = get_db_connection()
         with conn.cursor() as cursor:
             cursor.execute("SELECT id FROM users WHERE id = %s", (user_id,))
