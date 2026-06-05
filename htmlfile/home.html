@@ -1,174 +1,124 @@
 <!DOCTYPE html>
 <html>
 
-<head>
-    <meta charset="UTF-8">
-    <title>海龜湯</title>
-    <style>
-        @font-face {
-            font-family: 'NaikaiFont';
-            src: url('/font/NaikaiFont-Bold.ttf') format('truetype');
-        }
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>海龜湯</title>
+        <link rel="stylesheet" href="/font/style.css">
+        <link rel="icon" href="/font/icon.png" type="image/png">
+        <style>
+            h1.title {
+                font-size: 70px;
+                margin: 40px 0 20px 0;
+                letter-spacing: 5px;
+            }
 
-        body {
-            text-align: center;
-            font-family: 'NaikaiFont', Geneva, Tahoma, sans-serif;
-            background-image: url('/font/bg.jpg');
-            background-size: cover;
-            background-repeat: no-repeat;
-            background-position: center;
-            background-attachment: fixed;
-        }
+            .btn-group {
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+                width: 100%;
+            }
 
-        .auth-panel {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.6);
-            padding: 15px 20px;
-            border-radius: 8px;
-            border: 2px solid crimson;
-        }
+            .join-box {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                border-top: 1px dashed #441111;
+                border-bottom: 1px dashed #441111;
+                padding: 15px 0;
+            }
 
-        .auth-panel a,
-        .auth-panel button {
-            margin: 0 10px;
-            padding: 8px 15px;
-            font-size: 14px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            text-decoration: none;
-            font-family: 'NaikaiFont', Geneva, Tahoma, sans-serif;
-            font-weight: bold;
-        }
+            @media (max-width: 480px) {
+                h1.title {
+                    font-size: 50px;
+                }
+            }
+        </style>
+    </head>
 
-        .auth-panel .login-btn {
-            background: #4CAF50;
-            color: white;
-        }
-
-        .auth-panel .login-btn:hover {
-            background: #45a049;
-        }
-
-        .auth-panel .register-btn {
-            background: #2196F3;
-            color: white;
-        }
-
-        .auth-panel .register-btn:hover {
-            background: #0b7dda;
-        }
-
-        .auth-panel .logout-btn {
-            background: #f44336;
-            color: white;
-        }
-
-        .auth-panel .logout-btn:hover {
-            background: #da190b;
-        }
-
-        .user-name {
-            color: yellow;
-            font-size: 16px;
-        }
-
-        button.button {
-            padding: 10px 20px;
-            font-size: 20px;
-            background: rgba(182, 34, 34, 0.679);
-            color: white;
-            border-radius: 10px;
-            height: 50px;
-            width: 150px;
-            border: 5px dotted rgb(65, 20, 20);
-            margin-top: 50px;
-            margin-left: 50px;
-            font-family: 'NaikaiFont', Geneva, Tahoma, sans-serif;
-        }
-    </style>
-</head>
-
-<body>
-    <!-- 認證面板 -->
-    <div class="auth-panel">
-        <span id="authContent">
-            <a href="/login_page" class="login-btn">登入</a>
-            <a href="/register_page" class="register-btn">註冊</a>
-        </span>
-        <div id="userContent" style="display: none;">
-            <span class="user-name" id="displayUsername"></span>
-            <button class="logout-btn" onclick="logout()">登出</button>
+    <body>
+        <h1 class="title">海龜湯</h1>
+        <div class="main-container">
+            <div class="btn-group">
+                <button onclick="goSingle()" class="button">單人遊戲</button>
+                <button onclick="goCreate()" class="button">建立遊戲</button>
+                <div class="join-box">
+                    <input type="text" id="roomInput" placeholder="輸入 4 位房號" maxlength="4" style="text-align: center;"
+                        autocomplete="off">
+                    <button onclick="goJoin()" class="button">加入遊戲</button>
+                </div>
+                <button onclick="location.href='/submit_page'">題目投稿</button>
+            </div>
         </div>
-    </div>
 
-    <h1 style="color: crimson; font-size: 80px;">海龜湯</h1>
-    <div class="btn-group">
-        <button onclick="goSingle()" class="button">單人遊戲</button><br>
-        <button onclick="goCreate()" class="button">建立遊戲</button><br>
-        <div class="join-box">
-            <button onclick="goJoin()" class="button">加入遊戲</button>
-            <input type="text" id="roomInput" placeholder="輸入4位房號" style="text-align:center;width: 150px;font-size: 20px;"><br>
+        <!-- 認證面板 -->
+        <div class="auth-panel">
+            <span id="authContent">
+                <a href="/login_page" class="button">登入</a>
+                <a href="/register_page" class="button">註冊</a>
+            </span>
+            <div id="userContent" style="display: none;">
+                <span class="user-name" id="displayUsername"></span>
+                <button class="logout-btn" onclick="logout()">登出</button>
+            </div>
         </div>
-        <button onclick="location.href='/submit_page'" class="button">題目投稿</button>
-    </div>
 
-    <script>
-        const host = window.location.host; // 動態抓取目前網頁的 IP:Port
+        <script>
+            const host = window.location.host; // 動態抓取目前網頁的 IP:Port
 
-        // 檢查登入狀態
-        function checkLoginStatus() {
-            const username = localStorage.getItem('username');
-            const userId = localStorage.getItem('user_id');
-            
-            const authContent = document.getElementById('authContent');
-            const userContent = document.getElementById('userContent');
-            
-            if (username && userId) {
-                // 已登入
-                authContent.style.display = 'none';
-                userContent.style.display = 'block';
-                document.getElementById('displayUsername').textContent = `歡迎，${username}！`;
-            } else {
-                // 未登入
-                authContent.style.display = 'block';
-                userContent.style.display = 'none';
+            // 檢查登入狀態
+            function checkLoginStatus() {
+                const username = localStorage.getItem('username');
+                const userId = localStorage.getItem('user_id');
+
+                const authContent = document.getElementById('authContent');
+                const userContent = document.getElementById('userContent');
+
+                if (username && userId) {
+                    // 已登入
+                    authContent.style.display = 'none';
+                    userContent.style.display = 'block';
+                    document.getElementById('displayUsername').textContent = `歡迎，${username}！`;
+                } else {
+                    // 未登入
+                    authContent.style.display = 'block';
+                    userContent.style.display = 'none';
+                }
             }
-        }
 
-        function logout() {
-            if (confirm('確定要登出嗎？')) {
-                localStorage.removeItem('user_id');
-                localStorage.removeItem('username');
-                alert('已登出');
-                location.reload();
+            function logout() {
+                if (confirm('確定要登出嗎？')) {
+                    localStorage.removeItem('user_id');
+                    localStorage.removeItem('username');
+                    alert('已登出');
+                    location.reload();
+                }
             }
-        }
 
-        function goSingle() {
-            const randRoom = Math.floor(Math.random() * 900) + 100; // 生成 100~999
-            location.href = `http://${host}/cli_page?room=${randRoom}&role=single`;
-        }
-
-        function goCreate() {
-            const randRoom = Math.floor(Math.random() * 9000) + 1000; // 生成 1000~9999
-            location.href = `http://${host}/cli_page?room=${randRoom}&role=host`;
-        }
-
-        function goJoin() {
-            const roomVal = document.getElementById('roomInput').value.trim();
-            if (!roomVal) {
-                alert("請先輸入房號！");
-                return;
+            function goSingle() {
+                const randRoom = Math.floor(Math.random() * 900) + 100; // 生成 100~999
+                location.href = `http://${host}/cli_page?room=${randRoom}&role=single`;
             }
-            location.href = `http://${host}/cli_page?room=${roomVal}&role=player`;
-        }
 
-        // 頁面載入時檢查登入狀態
-        window.addEventListener('load', checkLoginStatus);
-    </script>
-</body>
+            function goCreate() {
+                const randRoom = Math.floor(Math.random() * 9000) + 1000; // 生成 1000~9999
+                location.href = `http://${host}/cli_page?room=${randRoom}&role=host`;
+            }
+
+            function goJoin() {
+                const roomVal = document.getElementById('roomInput').value.trim();
+                if (!roomVal) {
+                    alert("請先輸入房號！");
+                    return;
+                }
+                location.href = `http://${host}/cli_page?room=${roomVal}&role=player`;
+            }
+
+            // 頁面載入時檢查登入狀態
+            window.addEventListener('load', checkLoginStatus);
+        </script>
+    </body>
 
 </html>

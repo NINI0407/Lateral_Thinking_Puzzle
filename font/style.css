@@ -1,0 +1,293 @@
+/* ==================== 全域基礎設定 ==================== */
+@font-face {
+  font-family: "NaikaiFont";
+  src: url("/font/NaikaiFont-Bold.ttf") format("truetype");
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 20px;
+  background-image: url("/font/bg.jpg"); /* 讓所有頁面背景一致，若cli要不同可覆蓋 */
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-attachment: fixed;
+  background-color: #0d0606;
+  color: #e0e0e0;
+  font-family: "NaikaiFont", Geneva, Tahoma, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ==================== 視窗/面板 ==================== */
+.main-container {
+  background: rgba(20, 10, 10, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 2px solid #cc1111;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8);
+  width: 100%;
+  max-width: 500px;
+  transition: all 0.3s ease;
+}
+
+/* 標題與文字 */
+h1 {
+  color: #cc1111;
+  margin: 0 0 15px 0;
+  text-shadow: 0 0 10px rgba(204, 17, 17, 0.5);
+}
+
+h3,
+h4 {
+  margin: 5px 0;
+  font-weight: normal;
+}
+
+/* ==================== 按鈕與輸入框 ==================== */
+button,
+.btn-ctrl {
+  font-family: "NaikaiFont", sans-serif;
+  padding: 12px 20px;
+  font-size: 18px;
+  background: linear-gradient(135deg, #4a0d0d 0%, #260505 100%);
+  color: #ffcccc;
+  border: 1px solid #8a1f1f;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 1px;
+}
+
+button:hover,
+.btn-ctrl:hover {
+  background: linear-gradient(135deg, #8a1f1f 0%, #4a0d0d 100%);
+  color: #ffffff;
+  border-color: #ff3333;
+  box-shadow: 0 0 15px rgba(255, 51, 51, 0.6);
+  transform: translateY(-2px);
+}
+
+button:active,
+.btn-ctrl:active {
+  transform: translateY(1px);
+}
+
+/* 統一輸入框樣式 */
+input[type="text"] {
+  font-family: "NaikaiFont", sans-serif;
+  padding: 12px;
+  font-size: 16px;
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid #552222;
+  color: #fff;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+input[type="text"]:focus {
+  outline: none;
+  border-color: #cc1111;
+  box-shadow: 0 0 8px rgba(204, 17, 17, 0.5);
+}
+
+/* ==================== 4. 遊戲對戰室專用樣式 (cli.html) ==================== */
+.game-layout {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+  max-width: 1200px; /* 遊戲室放大寬度 */
+  height: 70vh;
+  min-height: 500px;
+}
+
+.panel {
+  background: rgba(15, 8, 8, 0.9);
+  border: 2px solid #cc1111;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+.chat-panel {
+  flex: 1.5;
+}
+.host-panel {
+  flex: 1;
+  display: none;
+  overflow-y: auto;
+}
+
+/* 統一聊天室紀錄流 */
+.log {
+  flex: 1;
+  background: rgba(5, 5, 5, 0.95);
+  border: 1px solid #331111;
+  border-radius: 6px;
+  overflow-y: auto;
+  padding: 15px;
+  margin-bottom: 15px;
+  font-size: 17px;
+  line-height: 1.6;
+  text-align: left;
+}
+
+.log div {
+  margin-bottom: 8px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.02);
+  border-left: 3px solid #551111;
+}
+
+/* 捲軸 */
+.log::-webkit-scrollbar {
+  width: 6px;
+}
+.log::-webkit-scrollbar-thumb {
+  background: #4a0d0d;
+  border-radius: 3px;
+}
+.log::-webkit-scrollbar-thumb:hover {
+  background: #cc1111;
+}
+
+#endGameArea {
+  display: none;
+  margin-top: 15px;
+  text-align: center;
+  background: rgba(204, 17, 17, 0.1);
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px dashed #cc1111;
+}
+
+/* ==================== RWD ==================== */
+@media (max-width: 768px) {
+  body {
+    padding: 8px;
+    height: 100vh; /* 鎖定全螢幕高度，防止整體網頁上下亂滑 */
+    overflow: hidden;
+  }
+
+  /* 頂部資訊列稍微縮小，騰出空間 */
+  .header {
+    margin-bottom: 8px;
+    padding: 6px;
+  }
+  .header h1 {
+    font-size: 20px !important;
+  }
+  .header h3,
+  .header h4 {
+    font-size: 14px;
+    margin: 2px 0;
+  }
+
+  /* 讓遊戲室的左右面板由橫變直 */
+  .game-layout {
+    flex-direction: column;
+    height: calc(100vh - 120px); /* 自動扣除頂部 header 的剩餘高度 */
+    gap: 10px;
+  }
+
+  /* 手機版聊天室固定高度，避免無限往下延伸 */
+  .chat-panel {
+    height: 60vh;
+    flex: none;
+  }
+
+  .host-panel {
+    height: calc(40vh - 140px);
+    min-height: 180px;
+  }
+
+  .host-panel p {
+    margin: 4px 0;
+    font-size: 14px;
+  }
+
+  /* 讓按鈕和輸入框在手機上更好點擊（滿版） */
+  .main-container {
+    padding: 20px 15px;
+  }
+
+  #inputArea {
+    flex-direction: column; /* 提問輸入框與按鈕在手機上變上下排 */
+  }
+
+  #inputArea button {
+    width: 100%;
+  }
+
+  .host-panel button {
+    width: 100% !important;
+    margin-right: 0;
+    margin-bottom: 8px;
+  }
+
+  #replyActionArea {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 完美的兩欄配置 */
+    gap: 8px;
+    margin-top: 5px;
+  }
+
+  /* 讓「快速回覆...」的提示文字橫跨兩欄 */
+  #replyActionArea p:first-child {
+    grid-column: span 2;
+    margin: 2px 0;
+    font-size: 14px;
+  }
+
+  /* 讓按鈕在網格中完美填滿 */
+  #replyActionArea button.btn-ctrl {
+    width: 100% !important;
+    padding: 10px 5px !important;
+    font-size: 15px !important;
+    margin: 0 !important;
+  }
+
+  /* 自訂提示區塊微調 */
+  #replyActionArea div:last-child {
+    grid-column: span 2; /* 橫跨兩欄 */
+    margin-top: 5px !important;
+    padding-top: 5px !important;
+  }
+}
+
+.auth-panel {
+  margin-top: 30px;
+  padding: 10px;
+  float: right;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-bottom: 15px;
+}
+
+.auth-panel a {
+  text-decoration: none;
+  color: #aa2222;
+  font-size: 16px;
+  padding: 8px 12px;
+  border: 1px solid #aa2222;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.auth-panel a:hover {
+  background-color: #aa2222;
+  color: #fff;
+  box-shadow: 0 0 10px rgba(170, 34, 34, 0.5);
+}
