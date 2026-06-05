@@ -286,6 +286,17 @@
 
             // ==================== 共通：發送問題與動態更新 ====================
             // ==================== 發送問題 ====================
+            function recordWin() {
+                const userId = localStorage.getItem('user_id');
+                if (!userId) return;
+
+                fetch('/api/record_win', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId })
+                }).catch(err => console.error("[排行榜] 勝場紀錄失敗:", err));
+            }
+
             function submitQuestion() {
                 const input = document.getElementById('queInput');
                 const msg = input.value.trim();
@@ -317,6 +328,7 @@
 
                             if (data.reply.includes("回答正確")) {
                                 gameActive = false;
+                                recordWin();
                                 document.getElementById('inputArea').style.display = 'none';
                                 document.getElementById('endGameArea').style.display = 'block';
                             }
