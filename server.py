@@ -10,7 +10,6 @@ from flask import Flask, render_template, request, jsonify, session
 from flask_cors import CORS
 from google import genai
 from google.genai import types
-from duckduckgo_search import DDGS
 
 app = Flask(__name__, template_folder="htmlfile", static_folder="font")
 CORS(app)
