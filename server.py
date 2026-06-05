@@ -10,7 +10,6 @@ from flask import Flask, render_template, request, jsonify, session
 from flask_cors import CORS
 from google import genai
 from google.genai import types
-from duckduckgo_search import DDGS
 
 app = Flask(__name__, template_folder="htmlfile", static_folder="font")
 CORS(app)
@@ -86,6 +85,25 @@ def verify_password(password, hashed_password):
     return hash_password(password) == hashed_password
 
 
+# def ensure_player_stats_table():
+#     conn = get_db_connection()
+#     with conn.cursor() as cursor:
+#         cursor.execute(
+#             """
+#             CREATE TABLE IF NOT EXISTS player_stats (
+#                 user_id int(11) NOT NULL,
+#                 wins int(11) NOT NULL DEFAULT 0,
+#                 games_played int(11) NOT NULL DEFAULT 0,
+#                 last_win_at timestamp NULL DEFAULT NULL,
+#                 PRIMARY KEY (user_id),
+#                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+#             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+#             """
+#         )
+#     conn.commit()
+#     conn.close()
+
+
 # ==================== 網頁 ====================
 @app.route("/")
 def home():
@@ -95,6 +113,11 @@ def home():
 @app.route("/cli_page")
 def cli_page():
     return render_template("cli.html")
+
+
+@app.route("/leaderboard_page")
+def leaderboard_page():
+    return render_template("leaderboard.html")
 
 
 @app.route("/submit_page")
@@ -203,6 +226,80 @@ def login():
 
 
 # 【查重功能】
+@app.route("/api/leaderboard", methods=["GET"])
+def leaderboard():
+    try:
+        # ensure_player_stats_table()
+        conn = get_db_connection()
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT
+                    u.id,
+                    u.username,
+                    COALESCE(ps.wins, 0) AS wins,
+                    COALESCE(ps.games_played, 0) AS games_played,
+                    COUNT(s.id) AS submissions,
+                    COALESCE(ps.wins, 0) * 100 AS score,
+                    ps.last_win_at
+                FROM users u
+                LEFT JOIN player_stats ps ON ps.user_id = u.id
+                LEFT JOIN submissions s ON s.user_id = u.id
+                GROUP BY u.id, u.username, ps.wins, ps.games_played, ps.last_win_at
+                ORDER BY score DESC, wins DESC, submissions DESC, u.username ASC
+                LIMIT 50
+                """
+            )
+            rows = cursor.fetchall()
+        conn.close()
+
+        for index, row in enumerate(rows, start=1):
+            row["rank"] = index
+            if row.get("last_win_at"):
+                row["last_win_at"] = row["last_win_at"].strftime("%Y-%m-%d %H:%M")
+
+        return jsonify({"status": "success", "players": rows})
+    except Exception as e:
+        print(f"[排行榜錯誤] {e}")
+        return jsonify({"status": "failed", "message": f"排行榜讀取失敗: {e}"}), 500
+
+
+@app.route("/api/record_win", methods=["POST"])
+def record_win():
+    data = request.get_json()
+    user_id = data.get("user_id")
+
+    if not user_id:
+        return jsonify({"status": "ignored", "message": "未登入，不紀錄排行榜"})
+
+    try:
+        # ensure_player_stats_table()
+        conn = get_db_connection()
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT id FROM users WHERE id = %s", (user_id,))
+            if not cursor.fetchone():
+                conn.close()
+                return jsonify({"status": "failed", "message": "找不到使用者"}), 404
+
+            cursor.execute(
+                """
+                INSERT INTO player_stats (user_id, wins, games_played, last_win_at)
+                VALUES (%s, 1, 1, CURRENT_TIMESTAMP)
+                ON DUPLICATE KEY UPDATE
+                    wins = wins + 1,
+                    games_played = games_played + 1,
+                    last_win_at = CURRENT_TIMESTAMP
+                """,
+                (user_id,),
+            )
+        conn.commit()
+        conn.close()
+        return jsonify({"status": "success"})
+    except Exception as e:
+        print(f"[勝場紀錄錯誤] {e}")
+        return jsonify({"status": "failed", "message": f"勝場紀錄失敗: {e}"}), 500
+
+
 @app.route("/api/get_all_titles", methods=["GET"])
 def get_all_titles():
     try:
@@ -453,43 +550,6 @@ def ai_chat():
     except Exception as e:
         print(f"[AI連線異常] 呼叫 Gemini 發生錯誤: {e}")
         return jsonify({"reply": "AI 關主開小差了，請再試一次！"})
-
-# @app.route('/api/ai_chat', methods=['POST'])
-# def ai_chat():
-#     data = request.get_json()
-#     player_msg = data.get("msg", "")       
-#     answer_context = data.get("answer", "") 
-
-#     # 🤖 建立給開源 LLM 的提示詞
-#     system_instruction = f"""
-#     你現在是一位嚴格、精準的「海龜湯遊戲關主」。
-#     【本局真相（湯底）】：{answer_context}。
-#     玩家會對你提出一個是非題。
-#     你只能根據真相進行推理，並嚴格從以下「四個固定選項」中選擇一個回答，絕對不能多說任何一個廢字或做任何劇情解釋：
-#     1. 若玩家猜對核心或要求公布解答，回答：『回答正確』；
-#     2. 若問題成立，回答：『是』；
-#     3. 若問題不成立，回答：『否』；
-#     4. 若無關緊要，回答：『與此無關』。
-#     除了這四個標準回覆，不要說任何多餘的話。
-#     """
-
-#     try:
-#         with DDGS() as ddgs:
-#             full_prompt = f"{system_instruction}\n\n玩家現在提問：{player_msg}\n請只回覆那四個選項之一："
-#             response = ddgs.ai_chat(keywords=full_prompt, model='llama-3-70b')
-            
-#         ai_reply = response.strip()
-#         print(f"[AI關主思維] 玩家問: {player_msg} -> AI判定: {ai_reply}")
-
-#         if "回答正確" in ai_reply:
-#             ai_reply = f"回答正確！揭曉真相：{answer_context}"
-
-#         return jsonify({"reply": ai_reply})
-
-#     except Exception as e:
-#         print(f"[開源AI連線異常] 發生錯誤: {e}")
-#         return jsonify({"reply": "關主腦袋卡住了，請再問一次！"})
-
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5678, debug=False, threaded=True)

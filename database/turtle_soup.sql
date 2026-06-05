@@ -33,7 +33,19 @@ CREATE TABLE IF NOT EXISTS `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ========================================
--- 資料表 2: game_stories (遊戲故事表)
+-- 資料表 2: player_stats (玩家戰績表)
+-- ========================================
+CREATE TABLE IF NOT EXISTS `player_stats` (
+  `user_id` int(11) NOT NULL,
+  `wins` int(11) NOT NULL DEFAULT 0,
+  `games_played` int(11) NOT NULL DEFAULT 0,
+  `last_win_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`user_id`),
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- ========================================
+-- 資料表 3: game_stories (遊戲故事表)
 -- ========================================
 CREATE TABLE IF NOT EXISTS `game_stories` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
