@@ -23,7 +23,7 @@
 
             .join-box {
                 display: flex;
-                flex-direction: column;
+                flex-direction: row;
                 gap: 10px;
                 border-top: 1px dashed #441111;
                 border-bottom: 1px dashed #441111;
@@ -39,16 +39,16 @@
     </head>
 
     <body>
-        <h1 style="color: crimson; font-size: 80px;">海龜湯</h1>
-        <div class="btn-group">
+        <h1 style="color: #cc1111; font-size: 80px;">海龜湯</h1>
+        <div class="main-container btn-group">
             <button onclick="goSingle()" class="button">單人遊戲</button><br>
             <button onclick="goCreate()" class="button">建立遊戲</button><br>
             <div class="join-box">
                 <button onclick="goJoin()" class="button">加入遊戲</button>
-                <input type="text" id="roomInput" placeholder="輸入4位房號"
-                    style="text-align:center;width: 150px;font-size: 20px;"><br>
+                <input type="text" id="roomInput" placeholder="輸入4位房號" style="text-align:center;">
             </div>
             <button onclick="location.href='/submit_page'" class="button">題目投稿</button>
+            <button onclick="location.href='/leaderboard_page'" class="button">排行榜</button>
         </div>
 
         <!-- 認證面板 -->
