@@ -17,7 +17,7 @@
             .btn-group {
                 display: flex;
                 flex-direction: column;
-                gap: 15px;
+                gap: 10px;
                 width: 100%;
             }
 
@@ -25,8 +25,7 @@
                 display: flex;
                 flex-direction: row;
                 gap: 10px;
-                border-top: 1px dashed #441111;
-                border-bottom: 1px dashed #441111;
+                border-bottom: 2px dashed #441111;
                 padding: 15px 0;
             }
 
@@ -44,7 +43,7 @@
             <button onclick="goSingle()" class="button">單人遊戲</button><br>
             <button onclick="goCreate()" class="button">建立遊戲</button><br>
             <div class="join-box">
-                <button onclick="goJoin()" class="button">加入遊戲</button>
+                <button onclick="goJoin()" class="button" style="width: 50%;">加入遊戲</button>
                 <input type="text" id="roomInput" placeholder="輸入4位房號" style="text-align:center;">
             </div>
             <button onclick="location.href='/submit_page'" class="button">題目投稿</button>

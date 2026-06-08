@@ -1,284 +1,217 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset="UTF-8">
-    <title>海龜湯 - 註冊</title>
-    <style>
-        @font-face {
-            font-family: 'NaikaiFont';
-            src: url('/font/NaikaiFont-Bold.ttf') format('truetype');
-        }
 
-        body {
-            text-align: center;
-            font-family: 'NaikaiFont', Geneva, Tahoma, sans-serif;
-            background-image: url('/font/bg.jpg');
-            background-size: cover;
-            background-repeat: no-repeat;
-            background-position: center;
-            background-attachment: fixed;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-        }
+    <head>
+        <meta charset="UTF-8">
+        <title>海龜湯 - 註冊</title>
+        <link rel="stylesheet" href="/font/style.css">
+        <link rel="icon" href="/font/icon.png" type="image/png">
+        <style>
+            @font-face {
+                font-family: 'NaikaiFont';
+                src: url('/font/NaikaiFont-Bold.ttf') format('truetype');
+            }
 
-        .register-container {
-            background: rgba(0, 0, 0, 0.8);
-            padding: 40px;
-            border-radius: 15px;
-            border: 3px solid crimson;
-            width: 350px;
-            box-shadow: 0 8px 32px rgba(220, 20, 60, 0.3);
-        }
+            body {
+                text-align: center;
+                background-image: url('/font/bg.jpg');
+                background-size: cover;
+            }
 
-        h1 {
-            color: crimson;
-            font-size: 50px;
-            margin: 0 0 30px 0;
-        }
+            .main-container {
+                background: rgba(0, 0, 0, 0.8);
+                padding: 40px;
+                width: 350px;
+                box-shadow: 0 8px 32px rgba(220, 20, 60, 0.3);
+            }
 
-        .input-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
+            h1 {
+                font-size: 50px;
+                margin: 0 0 30px 0;
+            }
 
-        label {
-            color: white;
-            display: block;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
+            .input-group {
+                margin-bottom: 20px;
+                text-align: left;
+            }
 
-        input[type="text"],
-        input[type="email"],
-        input[type="password"] {
-            width: 100%;
-            padding: 12px;
-            background: #222;
-            color: white;
-            border: 2px solid #444;
-            border-radius: 5px;
-            font-size: 14px;
-            box-sizing: border-box;
-        }
+            label {
+                color: white;
+                display: block;
+                margin-bottom: 8px;
+                font-size: 14px;
+            }
 
-        input[type="text"]:focus,
-        input[type="email"]:focus,
-        input[type="password"]:focus {
-            outline: none;
-            border-color: crimson;
-        }
+            input[type="text"],
+            input[type="email"],
+            input[type="password"] {
+                width: 100%;
+                padding: 12px;
+                background: #222;
+                color: white;
+                border: 2px solid #444;
+                border-radius: 5px;
+                font-size: 14px;
+                box-sizing: border-box;
+            }
 
-        .password-tip {
-            color: #aaa;
-            font-size: 12px;
-            margin-top: 4px;
-        }
+            input[type="text"]:focus,
+            input[type="email"]:focus,
+            input[type="password"]:focus {
+                outline: none;
+                border-color: #cc1111;
+            }
 
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 25px;
-        }
+            .button-group {
+                display: flex;
+                gap: 10px;
+                margin-top: 25px;
+            }
 
-        button {
-            flex: 1;
-            padding: 12px;
-            font-size: 16px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-family: 'NaikaiFont', Geneva, Tahoma, sans-serif;
-            font-weight: bold;
-        }
+            button {
+                flex: 1;
+            }
 
-        .btn-register {
-            background: crimson;
-            color: white;
-        }
+            .login-link {
+                margin-top: 20px;
+                color: #aaa;
+                font-size: 14px;
+            }
 
-        .btn-register:hover {
-            background: darkred;
-        }
+            .login-link a {
+                color: #ffcc00;
+                text-decoration: none;
+                cursor: pointer;
+            }
 
-        .btn-cancel {
-            background: #444;
-            color: white;
-        }
+            .login-link a:hover {
+                text-decoration: underline;
+            }
 
-        .btn-cancel:hover {
-            background: #555;
-        }
+            #message {
+                margin-top: 15px;
+                padding: 10px;
+                border-radius: 5px;
+                display: none;
+                font-weight: bold;
+            }
 
-        .login-link {
-            margin-top: 20px;
-            color: #aaa;
-            font-size: 14px;
-        }
+            .message-success {
+                background: rgba(0, 200, 0, 0.3);
+                color: #0f0;
+                border: 1px solid #0f0;
+            }
 
-        .login-link a {
-            color: #ffcc00;
-            text-decoration: none;
-            cursor: pointer;
-        }
+            .message-error {
+                background: rgba(200, 0, 0, 0.3);
+                color: #f00;
+                border: 1px solid #f00;
+            }
+        </style>
+    </head>
 
-        .login-link a:hover {
-            text-decoration: underline;
-        }
+    <body>
+        <div class="main-container">
+            <h1>海龜湯</h1>
 
-        #message {
-            margin-top: 15px;
-            padding: 10px;
-            border-radius: 5px;
-            display: none;
-            font-weight: bold;
-        }
+            <form id="registerForm" onsubmit="handleRegister(event)">
+                <div class="input-group">
+                    <label for="username">帳號</label>
+                    <input type="text" id="username" name="username" placeholder="帳號必須是3-20個字符" required minlength="3"
+                        maxlength="20">
+                </div>
 
-        .message-success {
-            background: rgba(0, 200, 0, 0.3);
-            color: #0f0;
-            border: 1px solid #0f0;
-        }
+                <div class="input-group">
+                    <label for="email">電子郵件</label>
+                    <input type="email" id="email" name="email" placeholder="example@email.com" required>
+                </div>
 
-        .message-error {
-            background: rgba(200, 0, 0, 0.3);
-            color: #f00;
-            border: 1px solid #f00;
-        }
-    </style>
-</head>
-<body>
-    <div class="register-container">
-        <h1>🐢 海龜湯</h1>
-        
-        <form id="registerForm" onsubmit="handleRegister(event)">
-            <div class="input-group">
-                <label for="username">帳號</label>
-                <input 
-                    type="text" 
-                    id="username" 
-                    name="username" 
-                    placeholder="3-20個字符"
-                    required
-                    minlength="3"
-                    maxlength="20"
-                >
-                <div class="password-tip">帳號必須是3-20個字符</div>
+                <div class="input-group">
+                    <label for="password">密碼</label>
+                    <input type="password" id="password" name="password" placeholder="密碼至少6個字符" required minlength="6">
+                </div>
+
+                <div class="input-group">
+                    <label for="confirmPassword">確認密碼</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" placeholder="再輸入一次密碼" required>
+                </div>
+
+                <div id="message"></div>
+
+                <div class="button-group">
+                    <button type="submit" class="button">註冊</button>
+                    <button type="button" class="button" onclick="goBack()">返回</button>
+                </div>
+            </form>
+
+            <div class="login-link">
+                已有帳號？ <a onclick="goLogin()">點此登入</a>
             </div>
-
-            <div class="input-group">
-                <label for="email">電子郵件</label>
-                <input 
-                    type="email" 
-                    id="email" 
-                    name="email" 
-                    placeholder="example@email.com"
-                    required
-                >
-            </div>
-
-            <div class="input-group">
-                <label for="password">密碼</label>
-                <input 
-                    type="password" 
-                    id="password" 
-                    name="password" 
-                    placeholder="至少6個字符"
-                    required
-                    minlength="6"
-                >
-                <div class="password-tip">密碼至少6個字符</div>
-            </div>
-
-            <div class="input-group">
-                <label for="confirmPassword">確認密碼</label>
-                <input 
-                    type="password" 
-                    id="confirmPassword" 
-                    name="confirmPassword" 
-                    placeholder="再輸入一次密碼"
-                    required
-                >
-            </div>
-
-            <div id="message"></div>
-
-            <div class="button-group">
-                <button type="submit" class="btn-register">註冊</button>
-                <button type="button" class="btn-cancel" onclick="goBack()">返回</button>
-            </div>
-        </form>
-
-        <div class="login-link">
-            已有帳號？ <a onclick="goLogin()">點此登入</a>
         </div>
-    </div>
 
-    <script>
-        function handleRegister(event) {
-            event.preventDefault();
-            
-            const username = document.getElementById('username').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            const messageDiv = document.getElementById('message');
+        <script>
+            function handleRegister(event) {
+                event.preventDefault();
 
-            // 驗證
-            if (!username || !email || !password || !confirmPassword) {
-                showMessage('所有欄位都要填寫！', 'error');
-                return;
-            }
+                const username = document.getElementById('username').value.trim();
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                const messageDiv = document.getElementById('message');
 
-            if (password !== confirmPassword) {
-                showMessage('兩次輸入的密碼不相符！', 'error');
-                return;
-            }
-
-            if (password.length < 6) {
-                showMessage('密碼至少需要6個字符！', 'error');
-                return;
-            }
-
-            // 發送註冊請求
-            fetch('/api/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, email, password })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    showMessage('註冊成功！正在跳轉至登入頁面...', 'success');
-                    setTimeout(() => {
-                        window.location.href = '/login_page';
-                    }, 1500);
-                } else {
-                    showMessage(data.message || '註冊失敗', 'error');
+                // 驗證
+                if (!username || !email || !password || !confirmPassword) {
+                    showMessage('所有欄位都要填寫！', 'error');
+                    return;
                 }
-            })
-            .catch(err => {
-                showMessage('網絡錯誤：' + err.message, 'error');
-            });
-        }
 
-        function showMessage(text, type) {
-            const messageDiv = document.getElementById('message');
-            messageDiv.textContent = text;
-            messageDiv.className = 'message-' + type;
-            messageDiv.style.display = 'block';
-        }
+                if (password !== confirmPassword) {
+                    showMessage('兩次輸入的密碼不相符！', 'error');
+                    return;
+                }
 
-        function goLogin() {
-            window.location.href = '/login_page';
-        }
+                if (password.length < 6) {
+                    showMessage('密碼至少需要6個字符！', 'error');
+                    return;
+                }
 
-        function goBack() {
-            window.location.href = '/';
-        }
-    </script>
-</body>
+                // 發送註冊請求
+                fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            showMessage('註冊成功！正在跳轉至登入頁面...', 'success');
+                            setTimeout(() => {
+                                window.location.href = '/login_page';
+                            }, 1500);
+                        } else {
+                            showMessage(data.message || '註冊失敗', 'error');
+                        }
+                    })
+                    .catch(err => {
+                        showMessage('網絡錯誤：' + err.message, 'error');
+                    });
+            }
+
+            function showMessage(text, type) {
+                const messageDiv = document.getElementById('message');
+                messageDiv.textContent = text;
+                messageDiv.className = 'message-' + type;
+                messageDiv.style.display = 'block';
+            }
+
+            function goLogin() {
+                window.location.href = '/login_page';
+            }
+
+            function goBack() {
+                window.location.href = '/';
+            }
+        </script>
+    </body>
+
 </html>
